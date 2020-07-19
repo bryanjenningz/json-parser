@@ -31,9 +31,9 @@ nonDoubleQuote =
 string : Parser String
 string =
     Parser.succeed identity
-        |. Parser.symbol "\""
+        |. Parser.token "\""
         |= nonDoubleQuote
-        |. Parser.symbol "\""
+        |. Parser.token "\""
 
 
 arrayEntries : Parser (List Json)
