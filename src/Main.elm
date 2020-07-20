@@ -163,14 +163,18 @@ jsonObject =
 
 json : Parser Json
 json =
-    Parser.oneOf
-        [ jsonNull
-        , jsonBoolean
-        , jsonNumber
-        , jsonString
-        , jsonArray
-        , jsonObject
-        ]
+    Parser.succeed identity
+        |. Parser.spaces
+        |= Parser.oneOf
+            [ jsonNull
+            , jsonBoolean
+            , jsonNumber
+            , jsonString
+            , jsonArray
+            , jsonObject
+            ]
+        |. Parser.spaces
+        |. Parser.end
 
 
 main : Html msg
