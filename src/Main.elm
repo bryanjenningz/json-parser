@@ -1,4 +1,4 @@
-module Main exposing (Json(..), json, main)
+module Main exposing (Json(..), jsonParser, main)
 
 import Dict exposing (Dict)
 import Html exposing (Html, text)
@@ -56,6 +56,7 @@ arrayEntries =
             |= json
             |. Parser.spaces
             |= Parser.loop [] collectArrayEntries
+            |. Parser.spaces
         , Parser.succeed ()
             |> Parser.map (\_ -> [])
         ]
@@ -163,16 +164,21 @@ jsonObject =
 
 json : Parser Json
 json =
+    Parser.oneOf
+        [ jsonNull
+        , jsonBoolean
+        , jsonNumber
+        , jsonString
+        , jsonArray
+        , jsonObject
+        ]
+
+
+jsonParser : Parser Json
+jsonParser =
     Parser.succeed identity
         |. Parser.spaces
-        |= Parser.oneOf
-            [ jsonNull
-            , jsonBoolean
-            , jsonNumber
-            , jsonString
-            , jsonArray
-            , jsonObject
-            ]
+        |= json
         |. Parser.spaces
         |. Parser.end
 
