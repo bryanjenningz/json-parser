@@ -22,18 +22,30 @@ bool =
         ]
 
 
-nonDoubleQuote : Parser String
-nonDoubleQuote =
-    Parser.chompWhile ((/=) '"')
-        |> Parser.getChompedString
-
-
 string : Parser String
 string =
     Parser.succeed identity
         |. Parser.token "\""
-        |= nonDoubleQuote
-        |. Parser.token "\""
+        |= Parser.loop [] collectStringEntries
+
+
+collectStringEntries : List String -> Parser (Step (List String) String)
+collectStringEntries reversedEntries =
+    Parser.oneOf
+        [ Parser.succeed (\entry -> Loop (entry :: reversedEntries))
+            |. Parser.token "\\"
+            |= Parser.oneOf
+                [ Parser.token "n" |> Parser.map (\_ -> "\n")
+                , Parser.token "t" |> Parser.map (\_ -> "\t")
+                , Parser.token "r" |> Parser.map (\_ -> "\u{000D}")
+                , Parser.token "\"" |> Parser.map (\_ -> "\"")
+                ]
+        , Parser.token "\""
+            |> Parser.map (\_ -> Done (String.join "" (List.reverse reversedEntries)))
+        , Parser.chompWhile (\char -> char /= '\\' && char /= '"')
+            |> Parser.getChompedString
+            |> Parser.map (\entry -> Loop (entry :: reversedEntries))
+        ]
 
 
 arrayEntries : Parser (List Json)
@@ -50,16 +62,16 @@ arrayEntries =
 
 
 collectArrayEntries : List Json -> Parser (Step (List Json) (List Json))
-collectArrayEntries reversedTerms =
+collectArrayEntries reversedEntries =
     Parser.oneOf
-        [ Parser.succeed (\term -> Loop (term :: reversedTerms))
+        [ Parser.succeed (\term -> Loop (term :: reversedEntries))
             |. Parser.spaces
             |. Parser.token ","
             |. Parser.spaces
             |= json
             |. Parser.spaces
         , Parser.succeed ()
-            |> Parser.map (\_ -> Done (List.reverse reversedTerms))
+            |> Parser.map (\_ -> Done (List.reverse reversedEntries))
         ]
 
 
@@ -155,4 +167,4 @@ json =
 
 main : Html msg
 main =
-    text << Debug.toString <| Parser.run json """{"a": 1, "b": [1, null, true, false, [{}], []]}"""
+    text << Debug.toString <| Parser.run json """{"a\\n": 0, "b\\" 嗨": [1, null, true, "", false, [{}], []]}"""
