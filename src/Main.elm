@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (Json(..), json, main)
 
 import Dict exposing (Dict)
 import Html exposing (Html, text)
@@ -125,7 +125,15 @@ jsonBoolean =
 
 jsonNumber : Parser Json
 jsonNumber =
-    Parser.float |> Parser.map JsonNumber
+    Parser.oneOf
+        [ Parser.succeed identity
+            |. Parser.token "-"
+            |= Parser.float
+            |> Parser.map (negate >> JsonNumber)
+        , Parser.succeed identity
+            |= Parser.float
+            |> Parser.map JsonNumber
+        ]
 
 
 jsonString : Parser Json
