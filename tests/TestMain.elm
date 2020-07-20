@@ -26,7 +26,7 @@ suite =
                         (Parser.run json (String.fromFloat randomFloat))
                         (Ok (JsonNumber randomFloat))
             ]
-        , Test.describe "Gives errors for invalid numbers" <|
+        , Test.describe "Gives errors for invalid numbers"
             [ Test.test "Gives error for leading zero in number 01" <|
                 \_ ->
                     Expect.equal (Parser.run json "01")
@@ -36,5 +36,22 @@ suite =
                     Expect.equal
                         (Parser.run json ("0" ++ String.fromInt randomInt))
                         (Err [ { col = 2, problem = ExpectingEnd, row = 1 } ])
+            ]
+        , Test.describe "Parses null"
+            [ Test.test "Parsers out null with spaces around it" <|
+                \_ -> Expect.equal (Parser.run json "   null   ") (Ok JsonNull)
+            ]
+        , Test.describe "Parses strings" <|
+            [ Test.test "Parsers out null with spaces around it" <|
+                \_ ->
+                    Expect.equal
+                        (Parser.run json """  "We're in \\"Elm World\\", aren't we?\u{000D}\t"  """)
+                        (Ok (JsonString "We're in \"Elm World\", aren't we?\u{000D}\t"))
+            ]
+        , Test.describe "Parses booleans"
+            [ Test.test "Parses true" <|
+                \_ -> Expect.equal (Parser.run json "   true ") (Ok (JsonBoolean True))
+            , Test.test "Parses false" <|
+                \_ -> Expect.equal (Parser.run json "   false ") (Ok (JsonBoolean False))
             ]
         ]
