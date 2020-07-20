@@ -1,2 +1,13 @@
-# json-parser
-Parses JSON and tells you where it's invalid
+# JSON Parser
+
+## Installing dependencies
+
+```
+npm i -g elm elm-test
+```
+
+## Running tests
+
+```
+elm-test --watch
+```
